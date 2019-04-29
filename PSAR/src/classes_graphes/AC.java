@@ -1,33 +1,37 @@
 package classes_graphes;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import jbotsim.Link;
-import jbotsim.Node;
 import jbotsim.Topology;
 import jbotsimx.ui.JViewer;
 
-public class BRE implements Graphe{
+public class AC implements Graphe {
+
 	private double proba;
 	private int nb_noeud;
-	private int temps;
-	private Map<Link,Integer> disparu;
+	private int temps_max;
+	private Link disparu=null;
+	private int temps_disparu;
 	private ArrayList<Noeud> graph;
 	private ArrayList<Link> liens;
-
-
-
 	
+	
+	public ArrayList<Noeud> getGraph() {
+		return graph;
+	}
 
-	public BRE(int noeud,double proba, int temps) {
+	public void setGraph(ArrayList<Noeud> graph) {
+		this.graph = graph;
+	}
+
+
+
+
+	public AC(int noeud,double proba, int temps) {
 		this.proba=proba;
-		this.temps=temps;
+		this.temps_max=temps;
 		nb_noeud=noeud;
-		disparu=new HashMap<>();
 		graph=new ArrayList<Noeud>();
 		liens=new ArrayList<Link>();
 		for (int i=0;i<nb_noeud;i++) {
@@ -44,44 +48,29 @@ public class BRE implements Graphe{
 		}
 
 	}
-	
-	public ArrayList<Noeud> getGraph() {
-		return graph;
-	}
-
-	public void setGraph(ArrayList<Noeud> graph) {
-		this.graph = graph;
-	}
-	
 	// Penser à la proba de réappariton avant random au moment de l'ajout dans la hash map
 	public void modifier() {
-		ArrayList<Link> supp=new ArrayList<Link>();
-		List<Link >dis = new ArrayList<Link>(disparu.keySet());
-
-		for (int i=0;i<liens.size();i++) {
-			double n=Math.random()*100;
-			if (n<=proba) {
-				supp.add(liens.get(i));
+	
+		if(disparu!=null) {
+			if(temps_disparu==0) {
+				liens.add(disparu);
+				disparu=null;
+			}else {
+				temps_disparu--;
 			}
-		}
-		for (int i=0;i<supp.size();i++) {
-			disparu.put(supp.get(i),(int)(Math.random()*temps));
-			liens.remove(supp.get(i));
-
+			
 		}
 		
-		for (int i=0;i<dis.size();i++) {
-			Link k=dis.get(i);
-			int val=disparu.get(k);
-			disparu.replace(k, val-1);
-			k=dis.get(i);
-			val=disparu.get(k);
-			if(disparu.get(dis.get(i))<=0) {
-				liens.add(k);
-				disparu.remove(k);
-			}
+		if(Math.random()*100<proba && disparu==null) {
+			int indice=(int) (Math.random()*liens.size());
+			int temps =(int) (Math.random()*temps_max);
+			disparu=liens.get(indice);
+			temps_disparu=temps;
+			liens.remove(indice);
+			temps_max=temps_max+temps;
 		}
-
+		
+	
 
 	}
 
@@ -109,12 +98,13 @@ public class BRE implements Graphe{
 
 	public static void main(String[] args) throws InterruptedException {
 		// TODO Auto-generated method stub
-		BRE st=new BRE(5, 100,1);
+		AC ac=new AC(5, 100,5);
 		Topology tp=new Topology();
-		st.afficher(tp);
+		ac.afficher(tp);
 		new JViewer(tp);
 		tp.start();
 
 	}
+
 
 }
